@@ -8,6 +8,7 @@ An LDTab database encodes the editing history of an OWL ontology.
 So, an LDTab database is *not an ontology*.
 However, an LDTab database can be used to reconstruct an OWL ontology up to a point in its editing history.
 Specifically, if an LDTab database only encodes *one* point in the editing history of an ontology,
+i.e., the database only contains database entries about asserted facts at the given point in time,
 then such a database *can be interpreted* in terms of a serialization format for an OWL ontology.
 
 To make this distinction clear, we will refer to an LDTab database that can be interpreted as an OWL ontology as an LDTab ontology.
