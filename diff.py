@@ -1,11 +1,12 @@
 import sqlite3
 import sys
 import os
+import csv
 
 # from datetime import date
 # from datetime import datetime
 # import time
-# import csv
+
 
 ################################
 # General ######################
@@ -166,16 +167,15 @@ def build_to_transaction(connection, transaction, output):
         file.write(axiom + "\n")
     file.close()
 
-
 #################################
 # 2. Diff #######################
 #################################
 
-
-# given tsv_1 and tsv_"
-# compute the diff/delta between tsv_1 and tsv_2
-# then add delta to tsv_1
-# and store this in a new tsv
+# given tsv_1 and tsv_2
+# compute the diff/delta between tsv_1 and tsv_2:
+# - added (asserted)
+# - deleted (retracted)
+#
 def compute_tsv_diff(tsv_1, tsv_2):
 
     # sort both files
@@ -183,8 +183,8 @@ def compute_tsv_diff(tsv_1, tsv_2):
     os.system("sort " + tsv_2 + ">> tmp/sort_2")
 
     # compare both files using comm
-    os.system("comm -23 tmp/sort_1 tmp/sort_2 >> tmp/deleted")
     os.system("comm -13 tmp/sort_1 tmp/sort_2 >> tmp/added")
+    os.system("comm -23 tmp/sort_1 tmp/sort_2 >> tmp/deleted")
 
     # delete sorted
     os.system("rm tmp/sort_1")
@@ -192,16 +192,12 @@ def compute_tsv_diff(tsv_1, tsv_2):
 
     # TODO: how do we assign transaction ids:
     # - simple increments?
-    # - dates?
     transaction_id = str(get_max_transaction(tsv_1) + 1)
+    # - dates?
     # now = datetime.now()
     # transaction_id = now.strftime("%Y%m%d%H%M%S")
 
-    # save earlier version
-    # TODO: this is not necessary? -- this will be refactored to tsv delta
-    os.system("cp " + tsv_1 + " tmp/" + transaction_id + ".tsv")
-
-    output = open("tmp/" + transaction_id + ".tsv", "a")
+    output = open("tmp/patch_" + transaction_id + ".tsv", "a")
     added = open("tmp/added", "r")
     deleted = open("tmp/deleted", "r")
 
@@ -225,9 +221,24 @@ def compute_tsv_diff(tsv_1, tsv_2):
     added.close()
     deleted.close()
 
+#################################
+# 3. Apply Patch ################
+#################################
+
+
+#Given an LDTab ontology and a patch in terms of added and deleted statements,
+#apply the patch to the ontology
+
+def apply_patch(tsv, patch):
+
+    transaction_id = str(get_max_transaction(tsv) + 1)
+    os.system("cp " + tsv + " tmp/" + transaction_id + ".tsv")
+    # TODO
+
+
 
 #################################
-# 3. Delta ######################
+# 4. Delta ######################
 #################################
 
 # take an LDTab database as input
@@ -258,11 +269,12 @@ def add_tsv_delta(ldtab, new_tsv):
     os.system("cat tmp/deleted >> tmp/previous.tsv")
 
     # TODO convert from TSV back to sqlite with sqlite  (don't do this here)
-
+    
 
 #################################
-# 4. Basic CLI ##################
+# 5. Basic CLI ##################
 #################################
+
 
 # commands:
 # 1. BUILD:
@@ -275,21 +287,59 @@ def add_tsv_delta(ldtab, new_tsv):
 #    given two ontologies (tsv)
 #    => compute their diff
 if __name__ == "__main__":
-    file_1 = sys.argv[1]
-    file_2 = sys.argv[2]
+    command = sys.argv[1]
 
-    # get connection
-    con = sqlite3.connect(file_1, check_same_thread=False)
-    con.row_factory = dict_factory
+    if command == "build":
+        database = sys.argv[2]
+        transaction_id = sys.argv[3]
+        output = sys.argv[4]
 
-    add_tsv_delta(con, file_2)
+        # get connection
+        con = sqlite3.connect(database, check_same_thread=False)
+        con.row_factory = dict_factory
+
+        build_to_transaction(con, int(transaction_id), output)
+
+    if command == "diff":
+        ontology_1 = sys.argv[2]
+        ontology_2 = sys.argv[3]
+        output = sys.argv[4]
+
+        compute_tsv_diff(file_1, file_2)
+
+    if command == "add-delta":
+        database = sys.argv[2]
+        ontology = sys.argv[3]
+
+        con = sqlite3.connect(database, check_same_thread=False)
+        con.row_factory = dict_factory
+
+        add_tsv_delta(con, ontology)
+
+    if command == "dump-tsv":
+        print("here in dump")
+        database = sys.argv[2]
+        output = sys.argv[3]
+
+        con = sqlite3.connect(database, check_same_thread=False)
+        #con.row_factory = dict_factory
+        c = con.cursor()
+        c.execute('SELECT * FROM statement')
+
+        csvWriter = csv.writer(open(output, "w"), delimiter='\t')
+        rows = c.fetchall()
+        print(len(rows))
+        csvWriter.writerows(rows)
 
     # print(get_transactions(con, 1))
 
     # max_transaction = get_max_transaction_database(con)
     # print(max_transaction)
 
-    # compute_tsv_diff(file_1, file_2)
+    #compute_tsv_diff(file_1, file_2)
+
+    # build(ldtab, transactionid, output)
+    # 
 
     # path management
     # script_dir = os.getcwd()
@@ -299,6 +349,7 @@ if __name__ == "__main__":
     # Later
     # Later
 
+    
     # !!! example for BUILD command !!!
     # get_transactions(con, 99999999999)
     # build_to_transaction(con, 99294, destination)
