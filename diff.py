@@ -23,15 +23,39 @@ import time
 #                max = int(row[0])
 #    return max
 
+def get_repr(s):
+    return repr(str(s))[1:-1]
+
+
+def encode_row(row):
+    #assertion = repr(row[0])
+    #retraction = repr(row[1])
+    #graph = repr(row[2])
+    #subject = repr(row[3])
+    #predicate = repr(row[4])
+    #objec = repr(row[5])
+    #datatype = repr(row[6])
+    #annotation = repr(row[7])
+
+    assertion = get_repr(row["assertion"])
+    retraction = get_repr(row["retraction"])
+    graph = get_repr(row["graph"])
+    subject = get_repr(row["subject"])
+    predicate = get_repr(row["predicate"])
+    objec = get_repr(row["object"])
+    datatype = get_repr(row["datatype"])
+    annotation = get_repr(row["annotation"])
+
+    encoding = assertion + "\t" + retraction + "\t" + graph + "\t" + subject + "\t" + predicate + "\t" + objec + "\t" + datatype + "\t" + annotation
+
+    return encoding
 
 def get_max_transaction(tsv):
     max = -1
     file = open(tsv, "r")
     next(file)  # skip header
     for line in file:
-        # print(line)
         cols = line.split("\t")
-        print(cols)
         if int(cols[0]) > max:
             max = int(cols[0])
 
@@ -106,26 +130,6 @@ def encode_annotation(value):
         return str(value)
 
 
-def encode_tsv_triple(triple):
-    res = (
-        str(triple["assertion"]).replace('\n','___newline___')
-        + "\t"
-        + str(triple["retraction"]).replace('\n','___newline___')
-        + "\t"
-        + triple["graph"].replace('\n','___newline___')
-        + "\t"
-        + triple["subject"].replace('\n','___newline___')
-        + "\t"
-        + triple["predicate"].replace('\n','___newline___')
-        + "\t"
-        + triple["object"].replace('\n','___newline___')
-        + "\t"
-        + triple["datatype"].replace('\n','___newline___')
-        + "\t"
-        + encode_annotation(triple["annotation"]).replace('\n','___newline___')
-    )
-    return res
-
 
 def build_to_transaction(connection, transaction, output):
     transactions = get_transactions(connection, transaction)
@@ -145,13 +149,13 @@ def build_to_transaction(connection, transaction, output):
                 # need to keep transaction id the same in order to hash things
                 triple["assertion"] = "1"
                 triple["retraction"] = "0"
-                ontology.add(encode_tsv_triple(triple))
+                ontology.add(encode_row(triple))
 
             if triple["retraction"] == 1:
 
                 triple["assertion"] = "1"
                 triple["retraction"] = "0"
-                ontology.remove(encode_tsv_triple(triple))
+                ontology.remove(encode_row(triple))
 
     # file = open(output + "-build-" + str(transaction) + ".tsv", "a")
     file = open(output, "a")
@@ -288,28 +292,6 @@ def add_tsv_delta(ldtab, new_tsv):
         cur.execute(query)
 
 
-def encode_row(row):
-    #assertion = repr(row[0])
-    #retraction = repr(row[1])
-    #graph = repr(row[2])
-    #subject = repr(row[3])
-    #predicate = repr(row[4])
-    #objec = repr(row[5])
-    #datatype = repr(row[6])
-    #annotation = repr(row[7])
-
-    assertion = repr(row["assertion"])
-    retraction = repr(row["retraction"])
-    graph = repr(row["graph"])
-    subject = repr(row["subject"])
-    predicate = repr(row["predicate"])
-    objec = repr(row["object"])
-    datatype = repr(row["datatype"])
-    annotation = repr(row["annotation"])
-
-    encoding = assertion + "\t" + retraction + "\t" + graph + "\t" + subject + "\t" + predicate + "\t" + objec + "\t" + datatype + "\t" + annotation
-
-    return encoding
 
 def dump_db_2_tsv(database, output):
 
@@ -359,10 +341,11 @@ if __name__ == "__main__":
 
         build_to_transaction(con, int(transaction_id), output)
 
+    #works
     if command == "diff":
-        ontology_1 = sys.argv[2]
-        ontology_2 = sys.argv[3]
-        output = sys.argv[4]
+        file_1 = sys.argv[2]
+        file_2 = sys.argv[3]
+        #output = sys.argv[4]
 
         compute_tsv_diff(file_1, file_2)
 
@@ -375,6 +358,7 @@ if __name__ == "__main__":
 
         add_tsv_delta(con, ontology)
 
+    #works
     if command == "dump-tsv":
         database = sys.argv[2]
         output = sys.argv[3]
