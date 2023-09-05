@@ -1,3 +1,4 @@
+
 import sqlite3
 import sys
 import os
@@ -5,12 +6,22 @@ import csv
 
 # from datetime import date
 # from datetime import datetime
-# import time
+import time
 
 
 ################################
 # General ######################
 ################################
+
+#def get_max_transaction(tsv):
+#    max = -1
+#    with open(tsv, 'r') as tsv_file:
+#        tsv_reader = csv.reader(tsv_file, delimiter='\t')
+#        next(tsv_reader)  # skip header
+#        for row in tsv_reader:
+#            if int(row[0]) > max:
+#                max = int(row[0])
+#    return max
 
 
 def get_max_transaction(tsv):
@@ -20,7 +31,7 @@ def get_max_transaction(tsv):
     for line in file:
         # print(line)
         cols = line.split("\t")
-        # print(cols)
+        print(cols)
         if int(cols[0]) > max:
             max = int(cols[0])
 
@@ -97,21 +108,21 @@ def encode_annotation(value):
 
 def encode_tsv_triple(triple):
     res = (
-        str(triple["assertion"])
+        str(triple["assertion"]).replace('\n','___newline___')
         + "\t"
-        + str(triple["retraction"])
+        + str(triple["retraction"]).replace('\n','___newline___')
         + "\t"
-        + triple["graph"]
+        + triple["graph"].replace('\n','___newline___')
         + "\t"
-        + triple["subject"]
+        + triple["subject"].replace('\n','___newline___')
         + "\t"
-        + triple["predicate"]
+        + triple["predicate"].replace('\n','___newline___')
         + "\t"
-        + triple["object"]
+        + triple["object"].replace('\n','___newline___')
         + "\t"
-        + triple["datatype"]
+        + triple["datatype"].replace('\n','___newline___')
         + "\t"
-        + encode_annotation(triple["annotation"])
+        + encode_annotation(triple["annotation"]).replace('\n','___newline___')
     )
     return res
 
@@ -119,10 +130,9 @@ def encode_tsv_triple(triple):
 def build_to_transaction(connection, transaction, output):
     transactions = get_transactions(connection, transaction)
 
-    # print(transactions)
     ontology = set()
 
-    # start with smallest transaction
+    # start with smallest transaction (transactions are sorted)
     for t in transactions:
         # get all assertions
         triples = get_triples(connection, str(t))
@@ -163,6 +173,7 @@ def build_to_transaction(connection, transaction, output):
         + "annotation"
         "\n"
     )
+    # TODO: encode things with repr?
     for axiom in ontology:
         file.write(axiom + "\n")
     file.close()
@@ -197,7 +208,7 @@ def compute_tsv_diff(tsv_1, tsv_2):
     # now = datetime.now()
     # transaction_id = now.strftime("%Y%m%d%H%M%S")
 
-    output = open("tmp/patch_" + transaction_id + ".tsv", "a")
+    output = open("tmp/patch.tsv", "a")
     added = open("tmp/added", "r")
     deleted = open("tmp/deleted", "r")
 
@@ -233,7 +244,8 @@ def apply_patch(tsv, patch):
 
     transaction_id = str(get_max_transaction(tsv) + 1)
     os.system("cp " + tsv + " tmp/" + transaction_id + ".tsv")
-    # TODO
+    # TODO add and delete statements from ontology
+    # this would require iterating over the file and deleting a rows
 
 
 
@@ -265,11 +277,58 @@ def add_tsv_delta(ldtab, new_tsv):
     # os.system("java -jar ldtab.jar export " + ldtab + "tmp/export.tsv")
 
     # add deleted + added to LDtab database
-    os.system("cat tmp/added >> tmp/previous.tsv")
-    os.system("cat tmp/deleted >> tmp/previous.tsv")
+    #TODO: insert into ldtab databse
 
-    # TODO convert from TSV back to sqlite with sqlite  (don't do this here)
-    
+    patch = open("tmp/patch.tsv", "r")
+    cur = ldtab.cursor()
+
+    for line in patch:
+        cols = line.split("\t")
+        query = 'INSERT INTO statement VALUES ({}, {}, {}, {}, {}, {}, {}, {})'.format(cols[0], cols[1], cols[2],cols[3],cols[4],cols[5],cols[6],cols[7])
+        cur.execute(query)
+
+
+def encode_row(row):
+    #assertion = repr(row[0])
+    #retraction = repr(row[1])
+    #graph = repr(row[2])
+    #subject = repr(row[3])
+    #predicate = repr(row[4])
+    #objec = repr(row[5])
+    #datatype = repr(row[6])
+    #annotation = repr(row[7])
+
+    assertion = repr(row["assertion"])
+    retraction = repr(row["retraction"])
+    graph = repr(row["graph"])
+    subject = repr(row["subject"])
+    predicate = repr(row["predicate"])
+    objec = repr(row["object"])
+    datatype = repr(row["datatype"])
+    annotation = repr(row["annotation"])
+
+    encoding = assertion + "\t" + retraction + "\t" + graph + "\t" + subject + "\t" + predicate + "\t" + objec + "\t" + datatype + "\t" + annotation
+
+    return encoding
+
+def dump_db_2_tsv(database, output):
+
+        con = sqlite3.connect(database, check_same_thread=False)
+        con.row_factory = dict_factory
+        c = con.cursor()
+        c.execute('SELECT * FROM statement')
+
+        rows = c.fetchall()
+
+        out = open(output, "a")
+
+        for row in rows:
+            out.write(encode_row(row) + "\n")
+
+        out.close()
+
+
+
 
 #################################
 # 5. Basic CLI ##################
@@ -317,19 +376,15 @@ if __name__ == "__main__":
         add_tsv_delta(con, ontology)
 
     if command == "dump-tsv":
-        print("here in dump")
         database = sys.argv[2]
         output = sys.argv[3]
+        dump_db_2_tsv(database, output)
 
-        con = sqlite3.connect(database, check_same_thread=False)
-        #con.row_factory = dict_factory
-        c = con.cursor()
-        c.execute('SELECT * FROM statement')
 
-        csvWriter = csv.writer(open(output, "w"), delimiter='\t')
-        rows = c.fetchall()
-        print(len(rows))
-        csvWriter.writerows(rows)
+        #csvWriter = csv.writer(open(output, "w"), delimiter='\t')
+        #rows = c.fetchall()
+        #print(len(rows))
+        #csvWriter.writerows(rows)
 
     # print(get_transactions(con, 1))
 
@@ -339,7 +394,6 @@ if __name__ == "__main__":
     #compute_tsv_diff(file_1, file_2)
 
     # build(ldtab, transactionid, output)
-    # 
 
     # path management
     # script_dir = os.getcwd()
@@ -348,6 +402,8 @@ if __name__ == "__main__":
     # Later
     # Later
     # Later
+
+    #40448
 
     
     # !!! example for BUILD command !!!
