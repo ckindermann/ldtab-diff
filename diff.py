@@ -45,6 +45,9 @@ def encode_row(row):
     objec = get_repr(row["object"])
     datatype = get_repr(row["datatype"])
     annotation = get_repr(row["annotation"])
+    if annotation=="None":
+        annotation=""
+
 
     encoding = assertion + "\t" + retraction + "\t" + graph + "\t" + subject + "\t" + predicate + "\t" + objec + "\t" + datatype + "\t" + annotation
 
