@@ -1,4 +1,3 @@
-
 import sqlite3
 import sys
 import os
@@ -7,6 +6,7 @@ import csv
 # from datetime import date
 # from datetime import datetime
 import time
+from ast import literal_eval
 
 
 ################################
@@ -23,30 +23,59 @@ import time
 #                max = int(row[0])
 #    return max
 
+
+
 def get_repr(s):
-    return repr(str(s))[1:-1]
+     #return repr(str(s))[1:-1]
+     if s is None :
+         return ""
+     escape_sequences = {
+             '"': '\\"',    
+             "'": "\\'",   
+             '\n': '\\n', 
+             '\t': '\\t',
+             '\r': '\\r'
+             #'\\': '\\\\',    TODO
+             # Add more escape sequences as needed
+             }
+     # Iterate through the dictionary and apply the escapes
+     for char, escape_sequence in escape_sequences.items():
+         s = s.replace(char, escape_sequence)
+
+     return s
+
+def inv_repr(s):
+    #if s != "":
+    #    return literal_eval("'" + s + "'")
+    #else:
+    #    return s
+    escape_sequences = {
+            #'\\\\': '\\',   # Backslash TODO: 
+             '\\"': '"',     # Double quotation mark
+             "\\'": "'",     # Single quotation mark (apostrophe)
+             '\\n': '\n',    # Newline
+             '\\t': '\t',    # Tab
+             '\\r': '\r'     # Carriage return
+             # Add more escape sequences as needed
+             }
+
+     # Iterate through the dictionary and apply the escapes
+    for char, escape_sequence in escape_sequences.items():
+        s = s.replace(char, escape_sequence)
+
+    return s
+
 
 
 def encode_row(row):
-    #assertion = repr(row[0])
-    #retraction = repr(row[1])
-    #graph = repr(row[2])
-    #subject = repr(row[3])
-    #predicate = repr(row[4])
-    #objec = repr(row[5])
-    #datatype = repr(row[6])
-    #annotation = repr(row[7])
-
-    assertion = get_repr(row["assertion"])
-    retraction = get_repr(row["retraction"])
+    assertion = get_repr(str(row["assertion"]))
+    retraction = get_repr(str(row["retraction"]))
     graph = get_repr(row["graph"])
     subject = get_repr(row["subject"])
     predicate = get_repr(row["predicate"])
     objec = get_repr(row["object"])
     datatype = get_repr(row["datatype"])
     annotation = get_repr(row["annotation"])
-    if annotation=="None":
-        annotation=""
 
 
     encoding = assertion + "\t" + retraction + "\t" + graph + "\t" + subject + "\t" + predicate + "\t" + objec + "\t" + datatype + "\t" + annotation
@@ -59,9 +88,12 @@ def get_max_transaction(tsv):
     next(file)  # skip header
     for line in file:
         cols = line.split("\t")
+        if(cols[0] == "assertion"): #TODO: not sure why header isn't skipped..
+            continue
         if int(cols[0]) > max:
             max = int(cols[0])
 
+    file.close()
     return max
 
 
@@ -260,6 +292,8 @@ def apply_patch(tsv, patch):
 # 4. Delta ######################
 #################################
 
+
+
 # take an LDTab database as input
 # build the most recent ontology version
 # then compute the diff
@@ -276,7 +310,7 @@ def add_tsv_delta(ldtab, new_tsv):
     # this will create:
     # - tmp/deleted
     # - tmp/added
-    # - tmp/({max_transaction}+1)-previous-diff.tsv
+    # - tmp/({max_transaction}+1)-previous-diff.tsv (patch.tsv)
     compute_tsv_diff("tmp/previous.tsv", new_tsv)
 
     # 3. add delta to LDTab database
@@ -291,8 +325,15 @@ def add_tsv_delta(ldtab, new_tsv):
 
     for line in patch:
         cols = line.split("\t")
-        query = 'INSERT INTO statement VALUES ({}, {}, {}, {}, {}, {}, {}, {})'.format(cols[0], cols[1], cols[2],cols[3],cols[4],cols[5],cols[6],cols[7])
+
+
+        query = "INSERT INTO statement VALUES ({}, {}, '{}', '{}', '{}', '{}', '{}', '{}')".format(int(cols[0]), int(cols[1]), cols[2],cols[3],cols[4],inv_repr(cols[5]).replace("'", "''"),cols[6],inv_repr(cols[7].rstrip('\n')).replace("'", "''"))
+
         cur.execute(query)
+
+
+    ldtab.commit()
+    patch.close()
 
 
 
@@ -333,6 +374,7 @@ def dump_db_2_tsv(database, output):
 if __name__ == "__main__":
     command = sys.argv[1]
 
+    #works
     if command == "build":
         database = sys.argv[2]
         transaction_id = sys.argv[3]
