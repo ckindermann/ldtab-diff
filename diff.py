@@ -327,7 +327,7 @@ def add_tsv_delta(ldtab, new_tsv):
         cols = line.split("\t")
 
 
-        query = "INSERT INTO statement VALUES ({}, {}, '{}', '{}', '{}', '{}', '{}', '{}')".format(int(cols[0]), int(cols[1]), cols[2],cols[3],cols[4],inv_repr(cols[5]).replace("'", "''"),cols[6],inv_repr(cols[7].rstrip('\n')).replace("'", "''"))
+        query = "INSERT INTO statement VALUES ({}, {}, '{}', '{}', '{}', '{}', '{}', '{}')".format(max_transaction+1, int(cols[1]), cols[2],cols[3],cols[4],inv_repr(cols[5]).replace("'", "''"),cols[6],inv_repr(cols[7].rstrip('\n')).replace("'", "''"))
 
         cur.execute(query)
 
