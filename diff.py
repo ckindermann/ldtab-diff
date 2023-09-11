@@ -30,8 +30,8 @@ def get_repr(s):
      if s is None :
          return ""
      escape_sequences = {
-             '"': '\\"',    
-             "'": "\\'",   
+             #'"': '\\"',    
+             #"'": "\\'",   
              '\n': '\\n', 
              '\t': '\\t',
              '\r': '\\r'
@@ -51,8 +51,8 @@ def inv_repr(s):
     #    return s
     escape_sequences = {
             #'\\\\': '\\',   # Backslash TODO: 
-             '\\"': '"',     # Double quotation mark
-             "\\'": "'",     # Single quotation mark (apostrophe)
+             #'\\"': '"',     # Double quotation mark
+             #"\\'": "'",     # Single quotation mark (apostrophe)
              '\\n': '\n',    # Newline
              '\\t': '\t',    # Tab
              '\\r': '\r'     # Carriage return
@@ -374,7 +374,6 @@ def dump_db_2_tsv(database, output):
 if __name__ == "__main__":
     command = sys.argv[1]
 
-    #works
     if command == "build":
         database = sys.argv[2]
         transaction_id = sys.argv[3]
@@ -386,7 +385,6 @@ if __name__ == "__main__":
 
         build_to_transaction(con, int(transaction_id), output)
 
-    #works
     if command == "diff":
         file_1 = sys.argv[2]
         file_2 = sys.argv[3]
@@ -403,7 +401,6 @@ if __name__ == "__main__":
 
         add_tsv_delta(con, ontology)
 
-    #works
     if command == "dump-tsv":
         database = sys.argv[2]
         output = sys.argv[3]
