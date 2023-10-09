@@ -66,7 +66,6 @@ def inv_repr(s):
     return s
 
 
-
 def encode_row(row):
     assertion = get_repr(str(row["assertion"]))
     retraction = get_repr(str(row["retraction"]))
@@ -194,24 +193,25 @@ def build_to_transaction(connection, transaction, output):
 
     # file = open(output + "-build-" + str(transaction) + ".tsv", "a")
     file = open(output, "a")
-    file.write(
-        "assertion"
-        + "\t"
-        + "retraction"
-        + "\t"
-        + "graph"
-        + "\t"
-        + "subject"
-        + "\t"
-        + "predicate"
-        + "\t"
-        + "object"
-        + "\t"
-        + "datatype"
-        + "\t"
-        + "annotation"
-        "\n"
-    )
+    #file.write(
+    #    "assertion"
+    #    + "\t"
+    #    + "retraction"
+    #    + "\t"
+    #    + "graph"
+    #    + "\t"
+    #    + "subject"
+    #    + "\t"
+    #    + "predicate"
+    #    + "\t"
+    #    + "object"
+    #    + "\t"
+    #    + "datatype"
+    #    + "\t"
+    #    + "annotation"
+    #    "\n"
+    #)
+
     # TODO: encode things with repr?
     for axiom in ontology:
         file.write(axiom + "\n")
@@ -352,9 +352,6 @@ def dump_db_2_tsv(database, output):
             out.write(encode_row(row) + "\n")
 
         out.close()
-
-
-
 
 #################################
 # 5. Basic CLI ##################
