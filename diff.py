@@ -232,13 +232,25 @@ def compute_tsv_diff(tsv_1, tsv_2):
     os.system("sort " + tsv_1 + ">> tmp/sort_1")
     os.system("sort " + tsv_2 + ">> tmp/sort_2")
 
+    # report duplicate rows 
+    os.system("uniq -dc tmp/sort_1 >> tmp/duplicates_1 ")
+    os.system("uniq -dc tmp/sort_2 >> tmp/duplicates_2 ")
+
+    # remove them using uniq
+    os.system("uniq tmp/sort_1 >> tmp/uniq_1 ")
+    os.system("uniq tmp/sort_2 >> tmp/uniq_2 ")
+
     # compare both files using comm
-    os.system("comm -13 tmp/sort_1 tmp/sort_2 >> tmp/added")
-    os.system("comm -23 tmp/sort_1 tmp/sort_2 >> tmp/deleted")
+    os.system("comm -13 tmp/uniq_1 tmp/uniq_2 >> tmp/added")
+    os.system("comm -23 tmp/uniq_1 tmp/uniq_2 >> tmp/deleted")
 
     # delete sorted
     os.system("rm tmp/sort_1")
     os.system("rm tmp/sort_2")
+
+    # delete uniq files
+    os.system("rm tmp/uniq_1")
+    os.system("rm tmp/uniq_2")
 
     # TODO: how do we assign transaction ids:
     # - simple increments?
