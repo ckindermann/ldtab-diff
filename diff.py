@@ -13,18 +13,6 @@ from ast import literal_eval
 # General ######################
 ################################
 
-#def get_max_transaction(tsv):
-#    max = -1
-#    with open(tsv, 'r') as tsv_file:
-#        tsv_reader = csv.reader(tsv_file, delimiter='\t')
-#        next(tsv_reader)  # skip header
-#        for row in tsv_reader:
-#            if int(row[0]) > max:
-#                max = int(row[0])
-#    return max
-
-
-
 def get_repr(s):
      #return repr(str(s))[1:-1]
      if s is None :
@@ -32,10 +20,10 @@ def get_repr(s):
      escape_sequences = {
              #'"': '\\"',    
              #"'": "\\'",   
+             #'\\': '\\\\',
              '\n': '\\n', 
              '\t': '\\t',
              '\r': '\\r'
-             #'\\': '\\\\',    TODO
              # Add more escape sequences as needed
              }
      # Iterate through the dictionary and apply the escapes
@@ -45,17 +33,13 @@ def get_repr(s):
      return s
 
 def inv_repr(s):
-    #if s != "":
-    #    return literal_eval("'" + s + "'")
-    #else:
-    #    return s
     escape_sequences = {
-            #'\\\\': '\\',   # Backslash TODO: 
-             #'\\"': '"',     # Double quotation mark
-             #"\\'": "'",     # Single quotation mark (apostrophe)
-             '\\n': '\n',    # Newline
-             '\\t': '\t',    # Tab
-             '\\r': '\r'     # Carriage return
+             #'\\\\': '\\',
+             #'\\"': '"',
+             #"\\'": "'",
+             '\\n': '\n',
+             '\\t': '\t',
+             '\\r': '\r' 
              # Add more escape sequences as needed
              }
 
@@ -84,7 +68,7 @@ def encode_row(row):
 def get_max_transaction(tsv):
     max = -1
     file = open(tsv, "r")
-    next(file)  # skip header
+    # next(file)  # skip header
     for line in file:
         cols = line.split("\t")
         if(cols[0] == "assertion"): #TODO: not sure why header isn't skipped..
@@ -193,26 +177,7 @@ def build_to_transaction(connection, transaction, output):
 
     # file = open(output + "-build-" + str(transaction) + ".tsv", "a")
     file = open(output, "a")
-    #file.write(
-    #    "assertion"
-    #    + "\t"
-    #    + "retraction"
-    #    + "\t"
-    #    + "graph"
-    #    + "\t"
-    #    + "subject"
-    #    + "\t"
-    #    + "predicate"
-    #    + "\t"
-    #    + "object"
-    #    + "\t"
-    #    + "datatype"
-    #    + "\t"
-    #    + "annotation"
-    #    "\n"
-    #)
 
-    # TODO: encode things with repr?
     for axiom in ontology:
         file.write(axiom + "\n")
     file.close()
@@ -318,7 +283,7 @@ def add_tsv_delta(ldtab, new_tsv):
     # 1.2 use build command to build most recent ontology (serialise it as TSV)
     build_to_transaction(ldtab, max_transaction, "tmp/previous.tsv")
 
-    # 2. comute diff
+    # 2. compute diff
     # this will create:
     # - tmp/deleted
     # - tmp/added
@@ -414,47 +379,3 @@ if __name__ == "__main__":
         database = sys.argv[2]
         output = sys.argv[3]
         dump_db_2_tsv(database, output)
-
-
-        #csvWriter = csv.writer(open(output, "w"), delimiter='\t')
-        #rows = c.fetchall()
-        #print(len(rows))
-        #csvWriter.writerows(rows)
-
-    # print(get_transactions(con, 1))
-
-    # max_transaction = get_max_transaction_database(con)
-    # print(max_transaction)
-
-    #compute_tsv_diff(file_1, file_2)
-
-    # build(ldtab, transactionid, output)
-
-    # path management
-    # script_dir = os.getcwd()
-    # abs_file_path = os.path.join(script_dir, file_1)
-
-    # Later
-    # Later
-    # Later
-
-    #40448
-
-    
-    # !!! example for BUILD command !!!
-    # get_transactions(con, 99999999999)
-    # build_to_transaction(con, 99294, destination)
-
-    # triples.to_csv(
-    #    "uuu",
-    #    sep="\t",
-    #    index=False,
-    #    quoting=csv.QUOTE_NONE,
-    #    doublequote=False,
-    #    escapechar="\\",
-    # )
-
-    # f1 = open(file_1, "r")
-    # file1 = set(f1.read().splitlines())
-    # for line in file1:
-    #    print(line)
