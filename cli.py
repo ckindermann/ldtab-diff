@@ -1,6 +1,6 @@
 import click
 import sqlite3
-from diff import generate, util, compare, delta as d
+from diff import generate, util, compare, delta
 
 @click.group()
 def main():
@@ -61,14 +61,14 @@ def diff(tsv1, tsv2):
 @main.command()
 @click.argument('database', type=str, required=True)
 @click.argument('tsv', type=str, required=True)
-def delta(database, tsv):
+def add_delta(database, tsv):
     """Add the delta between an ontology/graphs's most recent version stored in a LDTab database and a new version (in TSV)"""
     click.echo(f"Add the delta between the most recent version in {database} and the new version {tsv}.")
 
     con = sqlite3.connect(database, check_same_thread=False)
     con.row_factory = util.dict_factory
 
-    d.add_tsv_delta(con, tsv)
+    delta.add_tsv_delta(con, tsv)
 
 if __name__ == '__main__':
     main()
