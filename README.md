@@ -26,9 +26,9 @@ The resulting LDTab ontology will be written to `output`.
 
 Compute the diff between two LDTab ontologies:
 
-`diff ontology-1 ontology-2 output`
+`diff ontology-1 ontology-2`
 
-The diff between the two ontologies will be written to `output`.
+The diff between the two ontologies will be written to the folder `./tmp`.
 
 ## Delta
 
