@@ -65,6 +65,10 @@ def build_to_transaction(connection, transaction, output):
     # file = open(output + "-build-" + str(transaction) + ".tsv", "a")
     file = open(output, "a")
 
+    # add header
+    file.write("assertion\tretraction\tgraph\tsubject\tpredicate\tobject\tdatatype\tannotation\n")
+
+    # add contents
     for axiom in ontology:
         file.write(str(axiom) + "\n")
     file.close()
