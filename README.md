@@ -28,7 +28,7 @@ To make this distinction clear, we will refer to an LDTab database that can be i
 
 Build an LDTab ontology from an LDTab database up to the transaction `point-in-history`:
 
-`build ldtab-database point-in-history output`
+`python3 cli.py build ldtab-database point-in-history output`
 
 The resulting LDTab ontology will be written to `output`.
 
@@ -36,7 +36,7 @@ The resulting LDTab ontology will be written to `output`.
 
 Compute the diff between two LDTab ontologies:
 
-`diff ontology-1 ontology-2`
+`python3 cli.py diff ontology-1 ontology-2`
 
 The diff between the two ontologies will be written to the folder `./tmp`.
 
@@ -45,7 +45,7 @@ The diff between the two ontologies will be written to the folder `./tmp`.
 Add the diff between the most recent LDTab ontology encoded in an LDTab database and an input LDTab ontology
 to the LDTab database:
 
-`add-delta database ontology`
+`python3 cli.py add-delta database ontology`
 
 This does the following:
 1. Build the most recent LDTab ontology `recent` encoded in the input `database`
