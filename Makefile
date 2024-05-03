@@ -87,7 +87,7 @@ build/%.tsv: resources/ontologies/%.xml resources/prefix.tsv | $(DB)
 	sqlite3 $(DB) 'DROP TABLE IF EXISTS $*'
 
 
-### Comute Differences
+### Compute Differences
 
 build/diff/ab/: build/a.tsv build/b.tsv | $(DB)
 	mkdir -p build/diff/ab/
