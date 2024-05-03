@@ -90,18 +90,22 @@ build/%.tsv: resources/ontologies/%.xml resources/prefix.tsv | $(DB)
 ### Compute Differences
 
 build/diff/ab/: build/a.tsv build/b.tsv | $(DB)
+	mkdir -p tmp
 	mkdir -p build/diff/ab/
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
 	. venv/bin/activate && python3 cli.py add-delta build/ldtab.db build/b.tsv
 	mv tmp/* build/diff/ab/
+	rmdir tmp
 
 build/diff/bc/: build/b.tsv build/c.tsv | $(DB) build/diff/ab/
+	mkdir -p tmp
 	mkdir -p build/diff/bc/
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
 	. venv/bin/activate && python3 cli.py add-delta build/ldtab.db build/c.tsv
 	mv tmp/* build/diff/bc/
+	rmdir tmp
 
 ### Build Ontologies from LDTab database
 
