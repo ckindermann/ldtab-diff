@@ -13,7 +13,7 @@ SHELL := bash
 
 export PATH := $(shell pwd)/bin:$(PATH)
 
-DB := build/ldtab.db
+DB := example/ldtab.db
 
 ### Main Tasks
 
@@ -27,21 +27,21 @@ help:
 	@echo "  clobber     remove all generated files"
 	@echo "  help        print this message"
 
-.PHONY: example
-example: build/a.tsv build/b.tsv build/c.tsv build/diff/ab/ build/diff/bc/ build/fromLDTab/
+.PHONY: build
+build: example/a.tsv example/b.tsv example/c.tsv example/diff/ab/ example/diff/bc/ example/fromLDTab/
 
 .PHONY: all
-all: example
+all: build
 
 .PHONY: clean
 clean:
-	rm -rf build/
+	rm -rf example/
 
 .PHONY: clobber
 clobber:
-	rm -rf bin/ build/
+	rm -rf bin/ example/
 
-bin/ build/:
+bin/ example/:
 	mkdir -p $@
 
 ### Install Dependencies
@@ -73,12 +73,12 @@ bin/ldtab: bin/ldtab.jar
 
 ### Convert Ontologies
 
-$(DB): resources/prefix.tsv | bin/ldtab build/
+$(DB): resources/prefix.tsv | bin/ldtab example/
 	ldtab init $(DB) 
 	ldtab prefix $(DB) $<
 	ldtab import $(DB) resources/ontologies/a.xml
 
-build/%.tsv: resources/ontologies/%.xml resources/prefix.tsv | $(DB)
+example/%.tsv: resources/ontologies/%.xml resources/prefix.tsv | $(DB)
 	sqlite3 $(DB) 'DROP TABLE IF EXISTS $*'
 	rm -f $@
 	ldtab init $(DB) --table $*
@@ -89,30 +89,30 @@ build/%.tsv: resources/ontologies/%.xml resources/prefix.tsv | $(DB)
 
 ### Compute Differences
 
-build/diff/ab/: build/a.tsv build/b.tsv | $(DB)
+example/diff/ab/: example/a.tsv example/b.tsv | $(DB)
 	mkdir -p tmp
-	mkdir -p build/diff/ab/
+	mkdir -p example/diff/ab/
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
-	. venv/bin/activate && python3 cli.py add-delta build/ldtab.db build/b.tsv
-	mv tmp/* build/diff/ab/
+	. venv/bin/activate && python3 cli.py add-delta example/ldtab.db example/b.tsv
+	mv tmp/* example/diff/ab/
 	rmdir tmp
 
-build/diff/bc/: build/b.tsv build/c.tsv | $(DB) build/diff/ab/
+example/diff/bc/: example/b.tsv example/c.tsv | $(DB) example/diff/ab/
 	mkdir -p tmp
-	mkdir -p build/diff/bc/
+	mkdir -p example/diff/bc/
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
-	. venv/bin/activate && python3 cli.py add-delta build/ldtab.db build/c.tsv
-	mv tmp/* build/diff/bc/
+	. venv/bin/activate && python3 cli.py add-delta example/ldtab.db example/c.tsv
+	mv tmp/* example/diff/bc/
 	rmdir tmp
 
 ### Build Ontologies from LDTab database
 
-build/fromLDTab/: build/a.tsv build/b.tsv build/c.tsv | $(DB) build/diff/ab/ build/diff/bc/
-	mkdir -p build/fromLDTab/
+example/fromLDTab/: example/a.tsv example/b.tsv example/c.tsv | $(DB) example/diff/ab/ example/diff/bc/
+	mkdir -p example/fromLDTab/
 	test -d venv || python3 -m venv venv
 	. venv/bin/activate && pip3 install -r requirements.txt
-	. venv/bin/activate && python3 cli.py build build/ldtab.db 1 build/fromLDTab/1.tsv
-	. venv/bin/activate && python3 cli.py build build/ldtab.db 2 build/fromLDTab/2.tsv
-	. venv/bin/activate && python3 cli.py build build/ldtab.db 3 build/fromLDTab/3.tsv
+	. venv/bin/activate && python3 cli.py build example/ldtab.db 1 example/fromLDTab/1.tsv
+	. venv/bin/activate && python3 cli.py build example/ldtab.db 2 example/fromLDTab/2.tsv
+	. venv/bin/activate && python3 cli.py build example/ldtab.db 3 example/fromLDTab/3.tsv
