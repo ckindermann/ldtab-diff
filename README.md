@@ -44,8 +44,8 @@ A diff includes the following files:
 
 - `added`: LDTab rows that are in `ontology-2` but not in `ontology-1`
 - `deleted`: LDTab rows that are in `ontology-1` but not in `ontology-2`
-- `duplicates\_1` : duplicated rows in `ontology-1`
-- `duplicates\_2` : duplicated rows in `ontology-2`
+- `duplicates_1` : duplicated rows in `ontology-1`
+- `duplicates_2` : duplicated rows in `ontology-2`
 - `patch.tsv` : rows that represent the diff between the two ontology versions in an LDTab database
 
 ## Delta
