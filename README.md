@@ -10,7 +10,7 @@ LDTab-Diff is a tool for diffing ontologies and updating LDTab databases w.r.t. 
   2. initialize an LDTab database (located in `example/ldtab.db`)
   3. ingest the three versions `a`, `b`, and `c` of an example ontology (located in `resources/ontologies`) into `example/ldtab.db`
   4. write the diffs between the three ontology versions to `example/diff`
-  5. re-create the input three ontology versions using `example/ldtab.db` (generated files are in `example/fromLDTab`)
+  5. re-create the three input ontology versions using `example/ldtab.db` (generated files are in `example/fromLDTab`)
 
 ## General Concepts
 
